@@ -1,0 +1,53 @@
+
+
+proc doAll {} {
+
+    set Ntot 0
+    set Nbad 0
+    set Odir /astro/net/ivezic/array-1/ivezic/Stripe82/LightCurves/AllLCs
+
+     foreach dd {0m 1m 2m 3m 4m 5m 6m 7m} {
+       cd $Odir
+       cd ../$dd
+       set Wdir [exec pwd]
+       echo "working on $dd"
+       set FileList [exec ls ]; echo
+       foreach FileName $FileList {         
+          set id [getIDfromFileName $FileName]
+          if {$id != ""} {  
+             exec ln -s $Wdir/$FileName $Odir/LC_$id.dat   
+             set Ntot [expr $Ntot + 1]
+             echo linked file no. $Ntot id=$id  
+          } else {
+             set Nbad [expr $Nbad + 1]
+          }
+       }
+     }
+     echo Ntot = $Ntot
+     echo Nbad = $Nbad
+   
+   return $Ntot
+}
+
+
+## take a string like "+0.027209_+0.515353_49159.dat"
+## and extract 49159: string between the last "_" and ".dat"
+proc getIDfromFileName {FileName} {
+    set id ""
+   
+    # remove .dat
+    set string [string trimright $FileName .dat]
+    # now find the position of the last "_"
+    set klast -1
+    set sLength [string length $string]
+    loop k 0 $sLength {
+       if {[string range $string $k $k] == "_"} {
+          set klast $k
+       }
+    }
+    set id [string range $string [expr $klast + 1] $sLength] 
+    return $id
+}
+
+
+
